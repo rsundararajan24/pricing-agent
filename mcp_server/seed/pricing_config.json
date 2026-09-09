@@ -1,0 +1,8 @@
+{
+  "DE": {
+    "STANDARD": { "base_fee_pct": 2.50, "fixed_fee": 0.30, "currency": "EUR" }
+  },
+  "US": {
+    "STANDARD": { "base_fee_pct": 2.90, "fixed_fee": 0.30, "currency": "USD" }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "TICKET-101": {
+    "title": "Increase card processing fee for Germany, category STANDARD",
+    "description": "Product wants to raise the base processing fee for country=DE, category_code=STANDARD from its current value to 2.90% + fixed fee, effective next release. This is a value change (update_base).",
+    "status": "Open",
+    "comments": []
+  }
+}
