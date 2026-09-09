@@ -3,7 +3,7 @@ Pricing Change Request MCP Server
 ==================================
 
 A small, self-contained MCP server that stands in for the internal PayPal
-systems (Jira, Dobby/Trinity config service, Confluence) referenced in the
+systems (Jira, Dolby MCP / Price Config System, Confluence) referenced in the
 real "Pricing Business Enablement Automation using Claude" system.
 
 It exposes the same *shape* of tools the real system used, backed by plain
@@ -12,7 +12,7 @@ JSON files and a git-tracked config repo instead of proprietary services:
     get_ticket(ticket_id)              -- read a "Jira" ticket
     list_open_tickets()                -- list tickets needing action
     query_current_config(country, category_code)
-                                        -- read current pricing config ("Dobby" stand-in)
+                                        -- read current pricing config ("Dolby" stand-in)
     propose_config_change(...)         -- compute a before/after diff, NO write (Gate 1 material)
     commit_config_change(...)          -- actually write + git commit the change (Gate 2, requires confirm=True)
     generate_test_cases(country, category_code)
@@ -26,7 +26,7 @@ not here: this server will happily execute any single call it's given, the
 same way a real MCP server does. The agent is what pauses and asks the
 human before calling propose -> commit, or before calling
 post_ticket_comment with a "closing" summary. That separation mirrors the
-real system: Dobby MCP does not know about approval gates; the Claude
+real system: Dolby MCP does not know about approval gates; the Claude
 skill orchestrating it does.
 
 Runtime state lives in mcp_server/data/ (gitignored, generated). Seed
@@ -137,12 +137,12 @@ def post_ticket_comment(ticket_id: str, comment: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Dobby / Trinity stand-in (git-backed config repo)
+# Dolby MCP / Price Config System stand-in (git-backed config repo)
 # ---------------------------------------------------------------------------
 
 @mcp.tool()
 def query_current_config(country: str, category_code: str) -> dict:
-    """Read the current live pricing config for a country + category (Dobby MCP stand-in)."""
+    """Read the current live pricing config for a country + category (Dolby MCP stand-in)."""
     _require_data_dir()
     config = _load_json(CONFIG_FILE)
     country_cfg = config.get(country)
@@ -224,11 +224,12 @@ def _do_commit_config_change(country: str, category_code: str, field: str, new_v
 @mcp.tool()
 async def commit_config_change(country: str, category_code: str, field: str, new_value: float,
                                 ticket_id: str, confirm: bool) -> dict:
-    """Write a pricing config change and git-commit it (Trinity work-order stand-in).
+    """Write a pricing config change and git-commit it (Price Config System work-order stand-in).
 
     Requires confirm=True. The agent must only pass confirm=True after the
     human has explicitly approved the diff shown by propose_config_change --
-    this mirrors the real system's Maker/Checker gate before touching MSM.
+    this mirrors the real system's Maker/Checker gate before touching the
+    Staging Environment.
 
     This tool is async and runs its actual work (file I/O + spawning `git`
     as a subprocess) in a worker thread via asyncio.to_thread, rather than

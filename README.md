@@ -2,16 +2,16 @@
 
 A small, hands-on rebuild of the shape of PayPal's "Pricing Business
 Enablement Automation using Claude" system (the `/pricing-analyst` skill),
-using generic, non-proprietary stand-ins instead of Jira/Trinity/Confluence/
-Dobby MCP. Built to close the "I directed it, I didn't personally build it"
-gap before interviews -- this version I wrote and ran myself.
+using generic, non-proprietary stand-ins instead of Jira/Price Config System/
+Confluence/Dolby MCP. Built to close the "I directed it, I didn't personally
+build it" gap before interviews -- this version I wrote and ran myself.
 
 ## How this maps to the real system
 
 | Real system (PayPal)                  | This project                                   |
 |----------------------------------------|-------------------------------------------------|
 | Jira ticket / PRD                      | `mcp_server/seed/tickets.json`                   |
-| Dobby MCP + Trinity (MSM config)       | `mcp_server/data/config_repo/` (git-backed JSON) |
+| Dolby MCP + Price Config System (Staging Environment config) | `mcp_server/data/config_repo/` (git-backed JSON) |
 | Confluence docs                        | `mcp_server/data/pricing_docs.md`                |
 | PPS Calculate Price / Exchange Currency| `generate_test_cases` tool (simple fee formula)  |
 | The `/pricing-analyst` Claude skill    | `agent/pricing_agent.py`                         |
@@ -19,7 +19,7 @@ gap before interviews -- this version I wrote and ran myself.
 
 The real system's own documentation (see
 `Pricing_BE_Automation_Overview_Consolidated.docx`) confirms it already used
-an MCP-server pattern -- Dobby MCP sat between the Claude skill and PayPal's
+an MCP-server pattern -- Dolby MCP sat between the Claude skill and PayPal's
 internal config systems. This rebuild mirrors that shape exactly: an
 MCP server exposing tools, and a Claude-based agent that decides which
 tools to call and in what order, with human approval gates enforced in the
