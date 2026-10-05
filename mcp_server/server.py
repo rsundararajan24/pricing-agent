@@ -2,32 +2,32 @@
 Pricing Change Request MCP Server
 ==================================
 
-A small, self-contained MCP server that stands in for the internal PayPal
-systems (Jira, Dolby MCP / Price Config System, Confluence) referenced in the
-real "Pricing Business Enablement Automation using Claude" system.
+A small, self-contained MCP server that stands in for the systems a typical
+enterprise pricing-change workflow depends on: a ticketing system, a pricing
+configuration system and a documentation wiki.
 
-It exposes the same *shape* of tools the real system used, backed by plain
-JSON files and a git-tracked config repo instead of proprietary services:
+It exposes the kind of tools such a workflow needs, backed by plain JSON
+files and a git-tracked config repo instead of external services:
 
-    get_ticket(ticket_id)              -- read a "Jira" ticket
+    get_ticket(ticket_id)              -- read a ticket
     list_open_tickets()                -- list tickets needing action
     query_current_config(country, category_code)
-                                        -- read current pricing config ("Dolby" stand-in)
+                                        -- read current pricing config
     propose_config_change(...)         -- compute a before/after diff, NO write (Gate 1 material)
     commit_config_change(...)          -- actually write + git commit the change (Gate 2, requires confirm=True)
     generate_test_cases(country, category_code)
                                         -- build simple functional test cases against the new config
-    update_docs(ticket_id, summary)    -- append a section to the local "Confluence" docs file
+    update_docs(ticket_id, summary)    -- append a section to the local docs file
     post_ticket_comment(ticket_id, comment)
-                                        -- append an audit-trail comment to the ticket ("Jira" stand-in)
+                                        -- append an audit-trail comment to the ticket
 
 Human-in-the-loop is enforced in the AGENT layer (agent/pricing_agent.py),
 not here: this server will happily execute any single call it's given, the
 same way a real MCP server does. The agent is what pauses and asks the
 human before calling propose -> commit, or before calling
-post_ticket_comment with a "closing" summary. That separation mirrors the
-real system: Dolby MCP does not know about approval gates; the Claude
-skill orchestrating it does.
+post_ticket_comment with a "closing" summary. That separation is deliberate:
+the tool layer does not know about approval gates; the agent orchestrating
+it does.
 
 Runtime state lives in mcp_server/data/ (gitignored, generated). Seed
 templates live in mcp_server/seed/ (git-tracked). Run
@@ -93,12 +93,12 @@ def _now() -> str:
 
 
 # ---------------------------------------------------------------------------
-# Jira stand-in
+# Ticketing system stand-in
 # ---------------------------------------------------------------------------
 
 @mcp.tool()
 def get_ticket(ticket_id: str) -> dict:
-    """Fetch a single pricing-change ticket by ID (Jira stand-in)."""
+    """Fetch a single pricing-change ticket by ID (ticketing system stand-in)."""
     _require_data_dir()
     tickets = _load_json(TICKETS_FILE)
     if ticket_id not in tickets:
@@ -108,7 +108,7 @@ def get_ticket(ticket_id: str) -> dict:
 
 @mcp.tool()
 def list_open_tickets() -> list:
-    """List all tickets whose status is 'Open' (Jira stand-in)."""
+    """List all tickets whose status is 'Open' (ticketing system stand-in)."""
     _require_data_dir()
     tickets = _load_json(TICKETS_FILE)
     return [
@@ -120,9 +120,9 @@ def list_open_tickets() -> list:
 
 @mcp.tool()
 def post_ticket_comment(ticket_id: str, comment: str) -> dict:
-    """Append an audit-trail comment to a ticket (Jira stand-in).
+    """Append an audit-trail comment to a ticket (ticketing system stand-in).
 
-    In the real system this is one of the Gate-3 actions: the agent should
+    This is a gated action: the agent should
     only call this after the human has confirmed the comment's content
     (e.g. a test-result summary, or a note that config was committed).
     """
@@ -137,12 +137,12 @@ def post_ticket_comment(ticket_id: str, comment: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Dolby MCP / Price Config System stand-in (git-backed config repo)
+# Pricing configuration system stand-in (git-backed config repo)
 # ---------------------------------------------------------------------------
 
 @mcp.tool()
 def query_current_config(country: str, category_code: str) -> dict:
-    """Read the current live pricing config for a country + category (Dolby MCP stand-in)."""
+    """Read the current live pricing config for a country + category (pricing configuration system stand-in)."""
     _require_data_dir()
     config = _load_json(CONFIG_FILE)
     country_cfg = config.get(country)
@@ -224,12 +224,11 @@ def _do_commit_config_change(country: str, category_code: str, field: str, new_v
 @mcp.tool()
 async def commit_config_change(country: str, category_code: str, field: str, new_value: float,
                                 ticket_id: str, confirm: bool) -> dict:
-    """Write a pricing config change and git-commit it (Price Config System work-order stand-in).
+    """Write a pricing config change and git-commit it (pricing configuration system stand-in).
 
     Requires confirm=True. The agent must only pass confirm=True after the
     human has explicitly approved the diff shown by propose_config_change --
-    this mirrors the real system's Maker/Checker gate before touching the
-    Staging Environment.
+    this mirrors a maker/checker gate before a change is applied.
 
     This tool is async and runs its actual work (file I/O + spawning `git`
     as a subprocess) in a worker thread via asyncio.to_thread, rather than
@@ -245,15 +244,15 @@ async def commit_config_change(country: str, category_code: str, field: str, new
 
 
 # ---------------------------------------------------------------------------
-# Test-case generation (PPS Calculate Price stand-in)
+# Test-case generation (pricing calculation API stand-in)
 # ---------------------------------------------------------------------------
 
 @mcp.tool()
 def generate_test_cases(country: str, category_code: str) -> dict:
     """Generate simple functional test cases against the current config.
 
-    Stand-in for the real system's calls to the PPS Calculate Price /
-    Exchange Currency APIs to build a functional test matrix.
+    Stand-in for calls to a pricing calculation API to build a functional
+    test matrix.
     """
     _require_data_dir()
     config = _load_json(CONFIG_FILE)
@@ -282,12 +281,12 @@ def generate_test_cases(country: str, category_code: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Confluence stand-in
+# Documentation wiki stand-in
 # ---------------------------------------------------------------------------
 
 @mcp.tool()
 def update_docs(ticket_id: str, summary: str) -> dict:
-    """Append a dated section documenting a change (Confluence stand-in)."""
+    """Append a dated section documenting a change (documentation wiki stand-in)."""
     _require_data_dir()
     section = f"\n## {ticket_id} -- {_now()}\n\n{summary}\n"
     with open(DOCS_FILE, "a") as f:

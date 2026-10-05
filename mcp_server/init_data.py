@@ -9,7 +9,7 @@ config_repo subfolder as its own tiny git repository.
 Why a separate inner repo instead of just using the outer project's git repo?
 Because the outer pricing-agent folder is what you publish to GitHub as your
 project. The config_repo is meant to simulate a *separate*, internal config
-management system (Price Config System / Staging Environment) that the
+management system that the
 agent commits pricing changes to -- keeping it as its own throwaway git
 repo means:
   - the agent's commit history for config changes doesn't pollute your real

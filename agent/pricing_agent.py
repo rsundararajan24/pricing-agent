@@ -21,19 +21,11 @@ confirmation at the terminal, regardless of what Claude passes as
 arguments:
     - commit_config_change   (writes + git-commits a pricing change)
     - post_ticket_comment    (writes an audit trail comment)
-This mirrors the real system's Maker/Checker gates: the agent can reason
+This mirrors a maker/checker control: the agent can reason
 about and PROPOSE these actions freely, but a human must approve the
 literal content before it executes.
 
-IMPORTANT -- sandbox note:
-This script depends on the `anthropic` PyPI package. In the cloud sandbox
-that built this project, installing `anthropic` was blocked by network
-policy (pypi.org is not in that sandbox's egress allowlist), so this file
-was written carefully but has NOT been executed there. The MCP server
-itself (server.py) WAS fully tested in-sandbox via test_server_standalone.py
-using the real MCP client/server protocol, so the tool layer underneath
-this agent is verified. Run this file on your own machine (where pip
-installs from PyPI normally) to do the first live end-to-end run:
+Usage:
 
     pip install -r requirements.txt
     export ANTHROPIC_API_KEY=sk-ant-...    (or put it in a .env file, see .env.example)
@@ -62,8 +54,7 @@ MODEL = "claude-sonnet-4-5"  # change freely; any current Claude model with tool
 GATED_TOOLS = {"commit_config_change", "post_ticket_comment"}
 
 SYSTEM_PROMPT = """\
-You are a Pricing Change Request agent, modeled on PayPal's internal
-"/pricing-analyst" Claude skill. Your job is to take a pricing-change
+You are a Pricing Change Request agent. Your job is to take a pricing-change
 ticket through three phases, using the tools available to you:
 
 PHASE 1 -- Analysis
